@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: goguardian-website-tester
+    env: docker
+    repo: https://github.com/Lindetak000/goguardian-website-tester
+    branch: main
+    plan: free
