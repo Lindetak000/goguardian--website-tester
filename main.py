@@ -1,54 +1,41 @@
 import asyncio
+import playwright
 from playwright.async_api import async_playwright
-import datetime
+import time
+import os
 
-# List of starter URLs to branch from
-seed_urls = [
-    "https://example.com",
-    "https://wikipedia.org",
-    "https://mozilla.org"
-]
+# Function to check websites
+async def check_websites():
+    websites = ["https://www.google.com", "https://www.bing.com", "https://quora.com"]  # Add more websites here
+    results = []
 
-# Set to track visited URLs
-visited = set()
-
-# Max number of pages to visit
-MAX_VISITS = 50
-
-async def crawl_and_test(playwright):
-    browser = await playwright.chromium.launch(headless=True)
-    page = await browser.new_page()
-
-    to_visit = list(seed_urls)
-    count = 0
-
-    with open("results.txt", "w") as log_file:
-        while to_visit and count < MAX_VISITS:
-            url = to_visit.pop(0)
-            if url in visited:
-                continue
+    async with async_playwright() as p:
+        browser = await p.chromium.launch(headless=True)
+        for website in websites:
+            page = await browser.new_page()
             try:
-                await page.goto(url, timeout=10000)
-                log_file.write(f"{datetime.datetime.now()}: SUCCESS - {url}\n")
-                print(f"✅ Visited: {url}")
-                visited.add(url)
-                count += 1
-
-                # Grab links to expand crawl
-                links = await page.eval_on_selector_all("a", "els => els.map(e => e.href)")
-                for link in links:
-                    if link.startswith("http") and link not in visited:
-                        to_visit.append(link)
+                await page.goto(website, timeout=60000)  # Timeout after 60 seconds if page doesn't load
+                result = f"Website: {website}, Status: Online"
             except Exception as e:
-                log_file.write(f"{datetime.datetime.now()}: FAILED - {url} ({str(e)})\n")
-                print(f"❌ Failed: {url}")
-                visited.add(url)
-                count += 1
+                result = f"Website: {website}, Status: Offline, Error: {str(e)}"
+            results.append(result)
+            await page.close()
+        
+        await browser.close()
 
-    await browser.close()
+    # Log results to txt file
+    with open("website_results.txt", "a") as file:
+        for result in results:
+            file.write(result + "\n")
+        file.write("\n")  # Add a newline after each run for separation
 
+
+# Function to run the loop periodically
 async def main():
-    async with async_playwright() as playwright:
-        await crawl_and_test(playwright)
+    while True:
+        await check_websites()
+        print("Checked websites, sleeping for 1 hour...")
+        time.sleep(3600)  # Sleep for 1 hour before checking again
 
-asyncio.run(main())
+if __name__ == "__main__":
+    asyncio.run(main())
