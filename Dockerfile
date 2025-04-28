@@ -1,18 +1,18 @@
-# Use Playwright's official image with Python 3.8 and all browser dependencies
-FROM mcr.microsoft.com/playwright/python:v1.32.0-focal
+# Use an official lightweight Python image
+FROM python:3.11-slim
 
-# Set the working directory
+# Set working directory
 WORKDIR /app
 
-# Copy requirements and install Python deps
+# Install dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the app code
+# Copy the app files
 COPY . .
 
-# Expose the app's port
+# Expose the port
 EXPOSE 8080
 
-# Start the server
-CMD ["python", "main.py"]
+# Command to run the app
+CMD ["gunicorn", "-b", "0.0.0.0:8080", "main:app"]
