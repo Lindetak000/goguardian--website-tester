@@ -47,7 +47,7 @@ def home():
 
 if __name__ == '__main__':
     # Start crawler in background
-    start_urls = ['https://example.com']  # You must pick a starting point!
+    start_urls = ['https://google.com']  # You must pick a starting point!
     thread = threading.Thread(target=crawl_web, args=(start_urls,), daemon=True)
     thread.start()
     
